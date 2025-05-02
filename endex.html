@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Préstamos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            max-width: 600px;
+            background-color: #f9f9f9;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 10px;
+            width: 100%;
+        }
+        .prestamo {
+            border: 1px solid #007bff;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gestión de Préstamos</h1>
+    <input type="text" id="nombre" placeholder="Nombre de la persona" required>
+    <input type="number" id="cantidad" placeholder="Cantidad del préstamo" required>
+    <button onclick="agregarPrestamo()">Agregar Préstamo</button>
+
+    <h2>Lista de Préstamos</h2>
+    <div id="prestamos"></div>
+
+    <script>
+        const prestamos = JSON.parse(localStorage.getItem('prestamos')) || [];
+
+        function mostrarPrestamos() {
+            const contenedor = document.getElementById('prestamos');
+            contenedor.innerHTML = '';
+            prestamos.forEach((prestamo, index) => {
+                contenedor.innerHTML += `
+                    <div class="prestamo">
+                        <strong>Nombre:</strong> ${prestamo.nombre}<br>
+                        <strong>Cantidad:</strong> ${prestamo.cantidad}<br>
+                        <strong>Estado:</strong> ${prestamo.pagado ? 'Completado' : 'No pagado'}<br>
+                        <strong>Fecha de inicio:</strong> ${prestamo.fechaInicio}<br>
+                        <button onclick="toggleEstado(${index})">${prestamo.pagado ? 'Marcar como No Pagado' : 'Marcar como Completado'}</button>
+                        <button onclick="agregarCantidad(${index})">Agregar Cantidad</button>
+                        <button onclick="restarCantidad(${index})">Restar Cantidad</button>
+                    </div>`;
+            });
+        }
+
+        function agregarPrestamo() {
+            const nombre = document.getElementById('nombre').value;
+            const cantidad = parseFloat(document.getElementById('cantidad').value);
+            const fechaInicio = new Date().toLocaleDateString();
+
+            prestamos.push({ nombre, cantidad, pagado: false, fechaInicio });
+            localStorage.setItem('prestamos', JSON.stringify(prestamos));
+            mostrarPrestamos();
+            document.getElementById('nombre').value = '';
+            document.getElementById('cantidad').value = '';
+        }
+
+        function toggleEstado(index) {
+            prestamos[index].pagado = !prestamos[index].pagado;
+            localStorage.setItem('prestamos', JSON.stringify(prestamos));
+            mostrarPrestamos();
+        }
+
+        function agregarCantidad(index) {
+            const cantidad = parseFloat(prompt("Ingresa la cantidad a agregar:"));
+            if (!isNaN(cantidad)) {
+                prestamos[index].cantidad += cantidad;
+                localStorage.setItem('prestamos', JSON.stringify(prestamos));
+                mostrarPrestamos();
+            }
+        }
+
+        function restarCantidad(index) {
+            const cantidad = parseFloat(prompt("Ingresa la cantidad a restar:"));
+            if (!isNaN(cantidad) && prestamos[index].cantidad >= cantidad) {
+                prestamos[index].cantidad -= cantidad;
+                if (prestamos[index].cantidad === 0) {
+                    prestamos.splice(index, 1); // Elimina el préstamo si la cantidad es 0
+                }
+                localStorage.setItem('prestamos', JSON.stringify(prestamos));
+                mostrarPrestamos();
+            } else {
+                alert("La cantidad a restar es mayor que la cantidad actual.");
+            }
+        }
+
+        mostrarPrestamos();
+    </script>
+</body>
+</html>
